@@ -1,39 +1,36 @@
-from flask import Flask, request, jsonify
-from sympy import symbols, Eq, solve
-import re
+import streamlit as st
 
-app = Flask(__name__)
+# Orden de llenado de orbitales (regla de Aufbau)
+orbitales = [
+    ("1s", 2), ("2s", 2), ("2p", 6), ("3s", 2), ("3p", 6),
+    ("4s", 2), ("3d", 10), ("4p", 6), ("5s", 2), ("4d", 10),
+    ("5p", 6), ("6s", 2), ("4f", 14), ("5d", 10), ("6p", 6),
+    ("7s", 2), ("5f", 14), ("6d", 10), ("7p", 6)
+]
 
-# Tabla simple de masas molares
-molar_masses = {
-    "H": 1.008,
-    "O": 16.00,
-    "C": 12.01,
-    "Na": 22.99,
-    "Cl": 35.45
-}
+def configuracion_electronica(Z):
+    electrones = Z
+    config = []
 
-def calculate_molar_mass(formula):
-    elements = re.findall(r'([A-Z][a-z]*)(\d*)', formula)
-    mass = 0
-    for element, count in elements:
-        count = int(count) if count else 1
-        if element in molar_masses:
-            mass += molar_masses[element] * count
-    return mass
+    for orbital, capacidad in orbitales:
+        if electrones <= 0:
+            break
+        if electrones >= capacidad:
+            config.append(f"{orbital}^{capacidad}")
+            electrones -= capacidad
+        else:
+            config.append(f"{orbital}^{electrones}")
+            electrones = 0
 
-@app.route("/molar_mass", methods=["GET"])
-def molar_mass():
-    formula = request.args.get("formula")
-    mass = calculate_molar_mass(formula)
-    return jsonify({
-        "formula": formula,
-        "molar_mass": mass
-    })
+    return " ".join(config)
 
-@app.route("/")
-def home():
-    return "API de Química funcionando"
+# UI
+st.title("Configuración Electrónica")
 
-if __name__ == "__main__":
-    app.run(debug=True)
+st.write("Ingresa el número de protones (número atómico):")
+
+Z = st.number_input("Número atómico", min_value=1, max_value=118, step=1)
+
+if st.button("Calcular"):
+    resultado = configuracion_electronica(Z)
+    st.success(f"Configuración electrónica: {resultado}")

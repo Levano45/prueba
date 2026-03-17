@@ -1,86 +1,36 @@
 import streamlit as st
-import random
 
-st.set_page_config(page_title="Química Divertida", page_icon="")
+# Orden de llenado de orbitales (regla de Aufbau)
+orbitales = [
+    ("1s", 2), ("2s", 2), ("2p", 6), ("3s", 2), ("3p", 6),
+    ("4s", 2), ("3d", 10), ("4p", 6), ("5s", 2), ("4d", 10),
+    ("5p", 6), ("6s", 2), ("4f", 14), ("5d", 10), ("6p", 6),
+    ("7s", 2), ("5f", 14), ("6d", 10), ("7p", 6)
+]
 
-st.title("Aprende Química Jugando")
+def configuracion_electronica(Z):
+    electrones = Z
+    config = []
 
-menu = st.sidebar.selectbox(
-    "Selecciona una actividad",
-    ["Inicio", "Quiz de Química", "Adivina el Elemento"]
-)
-
-# ---------------- INICIO ----------------
-if menu == "Inicio":
-    st.header("Bienvenido ")
-    st.image("images/laboratorio.jpg", caption="Laboratorio químico")
-    st.write("Aprende química con juegos interactivos e imágenes.")
-
-# ---------------- QUIZ ----------------
-elif menu == "Quiz de Química":
-    st.header("Quiz de Química")
-
-    preguntas = [
-        {
-            "pregunta": "¿Cuál es el símbolo del sodio?",
-            "opciones": ["Na", "So", "S"],
-            "respuesta": "Na",
-            "explicacion": "El sodio proviene del latín 'Natrium'.",
-            "imagen": "images/tabla_periodica.png"
-        },
-        {
-            "pregunta": "¿Cuántos protones tiene el carbono?",
-            "opciones": ["6", "12", "8"],
-            "respuesta": "6",
-            "explicacion": "El número atómico del carbono es 6.",
-            "imagen": "images/tabla_periodica.png"
-        },
-    ]
-
-    q = random.choice(preguntas)
-
-    st.image(q["imagen"], width=300)
-    st.write(q["pregunta"])
-    opcion = st.radio("Elige una respuesta:", q["opciones"])
-
-    if st.button("Responder"):
-        if opcion == q["respuesta"]:
-            st.success("¡Correcto!")
+    for orbital, capacidad in orbitales:
+        if electrones <= 0:
+            break
+        if electrones >= capacidad:
+            config.append(f"{orbital}^{capacidad}")
+            electrones -= capacidad
         else:
-            st.error("Incorrecto")
-        
-        if st.checkbox("Mostrar ayuda"):
-            st.info(q["explicacion"])
+            config.append(f"{orbital}^{electrones}")
+            electrones = 0
 
-# ---------------- JUEGO ELEMENTOS ----------------
-elif menu == "Adivina el Elemento":
-    st.header("Adivina el elemento")
+    return " ".join(config)
 
-    elementos = [
-        {
-            "pista": "Gas esencial para respirar",
-            "respuesta": "Oxígeno",
-            "imagen": "images/oxigeno.jpg"
-        },
-        {
-            "pista": "Metal líquido a temperatura ambiente",
-            "respuesta": "Mercurio",
-            "imagen": "images/mercurio.jpg"
-        },
-    ]
+# UI
+st.title("Configuración Electrónica")
 
-    e = random.choice(elementos)
+st.write("Ingresa el número de protones (número atómico):")
 
-    st.image(e["imagen"], width=300)
-    st.info(e["pista"])
+Z = st.number_input("Número atómico", min_value=1, max_value=118, step=1)
 
-    respuesta = st.text_input("¿Cuál es el elemento?")
-
-    if st.button("Verificar"):
-        if respuesta.lower() == e["respuesta"].lower():
-            st.success("¡Correcto!")
-        else:
-            st.error(f"Era: {e['respuesta']}")
-
-    if st.checkbox("Necesito ayuda"):
-        st.warning("Observa la imagen y piensa en sus propiedades")
+if st.button("Calcular"):
+    resultado = configuracion_electronica(Z)
+    st.success(f"Configuración electrónica: {resultado}")
